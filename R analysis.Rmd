@@ -1,0 +1,284 @@
+---
+title: "IT Task"
+author: "Oluwaferanmi Badmus"
+date: "2023-08-14"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+#import packages to be used
+
+library(dplyr)
+library(readr)
+library(tidyverse)
+```
+
+```{r}
+#set file path to bring in dataset
+
+setwd("C:/Users/PC/Documents/DATASETS_R")
+```
+
+
+```{r}
+#import dataset to be used
+
+gt = read_csv("globalterrorism.csv")
+
+View(gt)
+```
+```{r}
+#Check data to see its qualities
+
+str(gt)
+```
+
+```{r}
+#Clean dataset to remove duplicates
+GT <- gt %>%
+  distinct()
+
+View(GT)
+
+# Then view columns having empty cells in them
+gt_na <- colnames(GT) [apply(GT,2,anyNA)]
+
+gt_na
+```
+
+```{r}
+#Task is to find out the hot zone of terrorism
+#derive security issues and insights from data
+
+#NEEDED COLUMNS:
+# 2,3,4,9,11,13,25,27,28,30,32,34,36,38,target1,targtype1_txt,targtype2_txt,targtype3_txt,weaptype1_txt
+
+gt_data <- GT %>%
+  select(2,3,4,9,11,13,25,27,28,30,32,34,36,38,target1,targtype1_txt,targtype2_txt,targtype3_txt,weaptype1_txt)
+
+View(gt_data)
+
+```
+
+
+```{r}
+#Modify column month to reflect month correctly,
+#modify success and suicide columns to shopw correctly.
+
+gt_data <- gt_data %>%
+  mutate(month = case_when(imonth == 1 ~ "Jan",
+                           imonth == 2 ~ "Feb",
+                           imonth == 3 ~ "Mar",
+                           imonth == 4 ~ "Apr",
+                           imonth == 5 ~ "May",
+                           imonth == 6 ~ "Jun",
+                           imonth == 7 ~ "Jul",
+                           imonth == 8 ~ "Aug",
+                           imonth == 9 ~ "Sep",
+                           imonth == 10 ~ "Oct",
+                           imonth == 11 ~ "Nov",
+                           imonth == 12 ~ "Dec",)) %>%
+  
+  mutate(successful = case_when(success == 1 ~ "Yes",
+                                success == 2 ~ "No",)) %>%
+  
+  mutate(a_suicide = case_when(suicide == 1 ~ "Yes",
+                               suicide == 2 ~ "No"))
+
+View(gt_data)
+```
+
+
+```{r}
+#TASK 1 - HOT ZONES
+#1 Find the hottest regions
+#2 Find the hottest countries
+#3 Find the hottest city
+#4 Hottest year
+#5 Hottest month of the year
+
+#TASK 2 - SECURITY ISSUES AND INSIGHTS
+#1 Find the most common attack type
+#2 Find the most common target type
+#3 Distribution of weapon type by success
+```
+
+```{r}
+#HOTTEST REGIONS FROM DATA
+#columns needed: regions, successful, suicide, 
+
+hot_region <- gt_data %>%
+  group_by(region_txt) %>%
+  
+  summarise(no_of_successful_attacks = sum(success), no_of_suicides = sum(suicide))
+
+View(hot_region)
+
+head(hot_region)
+```
+
+```{r}
+#The hottest region with the most successful attacks is:
+
+hot_region[which.max(hot_region$no_of_successful_attacks), ]
+
+#ANSWER - The hottest region of terrorism is the 'Middle East and North Africa' Region
+```
+
+
+```{r}
+#HOTTEST COUNTRIES FROM DATA
+#columns needed: country, successful, suicide, 
+
+hot_country <- gt_data %>%
+  group_by(country_txt) %>%
+  
+  summarise(no_of_successful_attacks = sum(success), no_of_suicides = sum(suicide))
+
+View(hot_country)
+
+head(hot_country)
+```
+
+
+```{r}
+#The hottest country with the most successful attacks is:
+
+hot_country[which.max(hot_country$no_of_successful_attacks), ]
+
+#ANSWER: The hottest country with the most successful attacks is 'Iraq' 
+```
+
+
+```{r}
+#HOTTEST CITY
+
+hot_city <- gt_data %>%
+  group_by(city) %>%
+  
+  summarise(no_of_successful_attacks = sum(success), no_of_suicides = sum(suicide))
+
+View(hot_city)
+
+head(hot_city)
+```
+
+
+```{r}
+#The hottest city with the most successful attacks is:
+
+hot_city[which.max(hot_city$no_of_successful_attacks), ]
+```
+
+
+```{r}
+#HOTTEST YEAR FROM DATA WITH MOST SUCCESSFUL ATTACKS:
+
+hot_year <- gt_data %>%
+  group_by(iyear) %>%
+  
+  summarise(no_of_successful_attacks = sum(success), no_of_suicides = sum(suicide))
+
+View(hot_year)
+
+head(hot_year)
+```
+
+
+```{r}
+#The hottest year between 1970 to 2017 with the most successful attacks is:
+
+hot_year[which.max(hot_year$no_of_successful_attacks), ]
+
+#ANSWER: '2014' is the year with the most successful attacks
+```
+
+
+```{r}
+#HOTTEST MONTH OF THE YEAR TO ATTACK:
+
+hot_month <- gt_data %>%
+  group_by(month) %>%
+  
+  summarise(no_of_successful_attacks = sum(success), no_of_suicides = sum(suicide))
+
+View(hot_month)
+
+head(hot_month)
+```
+
+```{r}
+#The hottest month is:
+
+hot_month[which.max(hot_month$no_of_successful_attacks), ]
+
+#ANSWER: 'May' is the hottest month of the year.
+```
+
+
+
+
+```{r}
+#TASK 2.1 - The most common attacktype
+#needed columns: attacktype, count of attack type
+
+attack_type <- gt_data %>%
+  group_by(attacktype1_txt) %>%
+  
+  count(attacktype1_txt)
+
+View(attack_type)
+
+head(attack_type)
+```
+
+```{r}
+# The most common attack type is:
+
+attack_type[which.max(attack_type$n), ]
+
+#ANSWER: 'Bombing/Explosion' is the most common attack type
+```
+
+```{r}
+#THE MOST COMMON TARGET TYPE
+
+target_type <- gt_data %>%
+  group_by(targtype1_txt) %>%
+  
+  count(targtype1_txt)
+
+View(target_type)
+
+head(target_type)
+```
+
+```{r}
+#The most common target type is:
+
+target_type[which.max(target_type$n), ]
+
+#The most common attack type is "Private Citizens & Property"
+```
+
+
+```{r}
+#Distribution of weapon type by success
+
+weap_distr <- gt_data %>%
+  group_by(weaptype1_txt) %>%
+  
+  summarise(success = sum(success))
+
+View(weap_distr)
+
+head(weap_distr)
+```
+
+```{r}
+#The most lethal weapon type is:
+
+weap_distr[which.max(weap_distr$success), ]
+
+#ANSWER: 'Explosives' is the most lethal weapon
+```
